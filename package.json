@@ -1,6 +1,6 @@
 {
-  "author": "Matt Mueller <mattmuelle@gmail.com> (mattmueller.me)",
-  "name": "cheerio",
+  "author": "Yad Smood",
+  "name": "ys-cheerio",
   "description": "Tiny, fast, and elegant implementation of core jQuery designed specifically for the server",
   "keywords": [
     "htmlparser",
