@@ -1,5 +1,5 @@
 var expect = require('expect.js'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     $ = require('../'),
     fixtures = require('./fixtures'),
     fruits = fixtures.fruits,
@@ -32,6 +32,13 @@ describe('cheerio', function() {
     expect($('#fruits')).to.be.empty();
   });
 
+  it('$(node) : should override previously-loaded nodes', function() {
+    var C = $.load('<div><span></span></div>');
+    var spanNode = C('span')[0];
+    var $span = C(spanNode);
+    expect($span[0]).to.equal(spanNode);
+  });
+
   it('should be able to create html without a root or context', function() {
     var $h2 = $('<h2>');
     expect($h2).to.not.be.empty();
@@ -60,6 +67,11 @@ describe('cheerio', function() {
 
   it('should be able to select .apple with only a context', function() {
     var $apple = $('.apple', fruits);
+    testAppleSelect($apple);
+  });
+
+  it('should be able to select .apple with a node as context', function() {
+    var $apple = $('.apple', $(fruits)[0]);
     testAppleSelect($apple);
   });
 
@@ -127,14 +139,19 @@ describe('cheerio', function() {
     expect($a[0].children[0].data).to.equal('Save');
   });
 
+  it('should not create a top-level node', function() {
+    var $elem = $('* div', '<div>');
+    expect($elem).to.have.length(0);
+  });
+
   it('should be able to select multiple elements: $(".apple, #fruits")', function() {
     var $elems = $('.apple, #fruits', fruits);
     expect($elems).to.have.length(2);
 
-    var $apple = _($elems).filter(function(elem) {
+    var $apple = _.filter($elems, function(elem) {
       return elem.attribs['class'] === 'apple';
     });
-    var $fruits = _($elems).filter(function(elem) {
+    var $fruits = _.filter($elems, function(elem) {
       return elem.attribs.id === 'fruits';
     });
     testAppleSelect($apple);

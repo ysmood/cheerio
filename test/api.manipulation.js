@@ -1,6 +1,7 @@
 var expect = require('expect.js'),
     $ = require('../'),
-    fruits = require('./fixtures').fruits;
+    fruits = require('./fixtures').fruits,
+    toArray = Function.call.bind(Array.prototype.slice);
 
 describe('$(...)', function() {
 
@@ -30,6 +31,20 @@ describe('$(...)', function() {
       expect($fruits.children(3).hasClass('plum')).to.be.ok();
     });
 
+    it('(existing Node) : should remove node from previous location', function() {
+      var $fruits = $(fruits);
+      var apple = $fruits.children()[0];
+      var $children;
+
+      expect($fruits.children()).to.have.length(3);
+      $fruits.append(apple);
+      $children = $fruits.children();
+
+      expect($children).to.have.length(3);
+      expect($children[0]).to.not.equal(apple);
+      expect($children[2]).to.equal(apple);
+    });
+
     it('($(...), html) : should add multiple elements as last children', function() {
       var $fruits = $(fruits);
       var $plum = $('<li class="plum">Plum</li>');
@@ -54,7 +69,7 @@ describe('$(...)', function() {
       var thisValues = [];
 
       $fruits.append(function() {
-        args.push(arguments);
+        args.push(toArray(arguments));
         thisValues.push(this);
       });
 
@@ -158,6 +173,20 @@ describe('$(...)', function() {
       expect($fruits.children(0).hasClass('plum')).to.be.ok();
     });
 
+    it('(existing Node) : should remove existing nodes from previous locations', function() {
+      var $fruits = $(fruits);
+      var pear = $fruits.children()[2];
+      var $children;
+
+      expect($fruits.children()).to.have.length(3);
+      $fruits.prepend(pear);
+      $children = $fruits.children();
+
+      expect($children).to.have.length(3);
+      expect($children[2]).to.not.equal(pear);
+      expect($children[0]).to.equal(pear);
+    });
+
     it('(Array) : should add all elements in the array as inital children', function() {
       var $fruits = $(fruits);
       var more = $('<li class="plum">Plum</li><li class="grape">Grape</li>')
@@ -182,7 +211,7 @@ describe('$(...)', function() {
       var thisValues = [];
 
       $fruits.prepend(function() {
-        args.push(arguments);
+        args.push(toArray(arguments));
         thisValues.push(this);
       });
 
@@ -287,6 +316,18 @@ describe('$(...)', function() {
       expect($('.apple', $fruits).next().hasClass('plum')).to.be.ok();
     });
 
+    it('(existing Node) : should remove existing nodes from previous locations', function() {
+      var $fruits = $(fruits);
+      var pear = $fruits.children()[2];
+      var $children;
+
+      $('.apple', $fruits).after(pear);
+
+      $children = $fruits.children();
+      expect($children).to.have.length(3);
+      expect($children[1]).to.be(pear);
+    });
+
     it('($(...), html) : should add multiple elements as next siblings', function() {
       var $fruits = $(fruits);
       var $plum = $('<li class="plum">Plum</li>');
@@ -302,7 +343,7 @@ describe('$(...)', function() {
       var thisValues = [];
 
       $fruits.after(function() {
-        args.push(arguments);
+        args.push(toArray(arguments));
         thisValues.push(this);
       });
 
@@ -382,6 +423,18 @@ describe('$(...)', function() {
       expect($('.apple', $fruits).prev().hasClass('plum')).to.be.ok();
     });
 
+    it('(existing Node) : should remove existing nodes from previous locations', function() {
+      var $fruits = $(fruits);
+      var pear = $fruits.children()[2];
+      var $children;
+
+      $('.apple', $fruits).before(pear);
+
+      $children = $fruits.children();
+      expect($children).to.have.length(3);
+      expect($children[0]).to.be(pear);
+    });
+
     it('(Array) : should add all elements in the array as previous sibling', function() {
       var $fruits = $(fruits);
       var more = $('<li class="plum">Plum</li><li class="grape">Grape</li>')
@@ -406,7 +459,7 @@ describe('$(...)', function() {
       var thisValues = [];
 
       $fruits.before(function() {
-        args.push(arguments);
+        args.push(toArray(arguments));
         thisValues.push(this);
       });
 
@@ -493,41 +546,48 @@ describe('$(...)', function() {
 
       expect($fruits.children(2).hasClass('plum')).to.be.ok();
       expect($fruits.children(3).hasClass('grape')).to.be.ok();
+      expect($fruits.children()).to.have.length(4);
     });
 
-    it('(elem) : should replace the selected element with given element', function() {
-      var $src = $('<ul></ul>');
-      var $elem = $('<h2>hi <span>there</span></h2>');
-      var $replaced = $src.replaceWith($elem);
-      expect($replaced[0].parent.type).to.equal('root');
-      expect($.html($replaced[0].parent)).to.equal('<h2>hi <span>there</span></h2>');
-      expect($.html($replaced)).to.equal('<ul></ul>');
+    it('(Node) : should replace the selected element with given node', function() {
+      var $src = $('<h2>hi <span>there</span></h2>');
+      var $new = $('<ul></ul>');
+      var $replaced = $src.find('span').replaceWith($new[0]);
+      expect($new[0].parent).to.equal($src[0]);
+      expect($replaced[0].parent).to.equal(null);
+      expect($.html($src)).to.equal('<h2>hi <ul></ul></h2>');
     });
 
-    it('(Node) : should replace the selected element with given element', function() {
-      var $src = $('<ul></ul>');
-      var elem = $('<h2>hi <span>there</span></h2>');
-      var $replaced = $src.replaceWith(elem);
-      expect($replaced[0].parent.type).to.equal('root');
-      expect($.html($replaced[0].parent)).to.equal('<h2>hi <span>there</span></h2>');
-      expect($.html($replaced)).to.equal('<ul></ul>');
+    it('(existing element) : should remove element from its previous location', function() {
+      var $fruits = $(fruits);
+      $('.pear', $fruits).replaceWith($('.apple', $fruits));
+      expect($fruits.children()).to.have.length(2);
+      expect($fruits.children()[0]).to.equal($('.orange', $fruits)[0]);
+      expect($fruits.children()[1]).to.equal($('.apple', $fruits)[0]);
     });
 
     it('(elem) : should replace the single selected element with given element', function() {
-      var $src = $('<br/>');
-      var $elem = $('<h2>hi <span>there</span></h2>');
-      var $replaced = $src.replaceWith($elem);
-      expect($replaced[0].parent.type).to.equal('root');
-      expect($.html($replaced[0].parent)).to.equal('<h2>hi <span>there</span></h2>');
-      expect($.html($replaced)).to.equal('<br>');
+      var $src = $('<h2>hi <span>there</span></h2>');
+      var $new = $('<div>here</div>');
+      var $replaced = $src.find('span').replaceWith($new);
+      expect($new[0].parent).to.equal($src[0]);
+      expect($replaced[0].parent).to.equal(null);
+      expect($.html($src)).to.equal('<h2>hi <div>here</div></h2>');
     });
 
     it('(str) : should accept strings', function() {
-      var $src = $('<br/>');
-      var $replaced = $src.replaceWith('<h2>hi <span>there</span></h2>');
-      expect($replaced[0].parent.type).to.equal('root');
-      expect($.html($replaced[0].parent)).to.equal('<h2>hi <span>there</span></h2>');
-      expect($.html($replaced)).to.equal('<br>');
+      var $src = $('<h2>hi <span>there</span></h2>');
+      var newStr = '<div>here</div>';
+      var $replaced = $src.find('span').replaceWith(newStr);
+      expect($replaced[0].parent).to.equal(null);
+      expect($.html($src)).to.equal('<h2>hi <div>here</div></h2>');
+    });
+
+    it('(str) : should replace all selected elements', function() {
+      var $src = $('<b>a<br>b<br>c<br>d</b>');
+      var $replaced = $src.find('br').replaceWith(' ');
+      expect($replaced[0].parent).to.equal(null);
+      expect($.html($src)).to.equal('<b>a b c d</b>');
     });
 
     it('(fn) : should invoke the callback with the correct argument and context', function() {
@@ -537,12 +597,16 @@ describe('$(...)', function() {
       var thisValues = [];
 
       $fruits.children().replaceWith(function() {
-        args.push(arguments);
+        args.push(toArray(arguments));
         thisValues.push(this);
         return '<li class="first">';
       });
 
-      expect(args).to.eql([[0], [1], [2]]);
+      expect(args).to.eql([
+        [0, origChildren[0]],
+        [1, origChildren[1]],
+        [2, origChildren[2]]
+      ]);
       expect(thisValues).to.eql([
         origChildren[0],
         origChildren[1],

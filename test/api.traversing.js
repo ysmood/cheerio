@@ -2,6 +2,7 @@ var expect = require('expect.js'),
   $ = require('../'),
   food = require('./fixtures').food,
   fruits = require('./fixtures').fruits,
+  drinks = require('./fixtures').drinks,
   text = require('./fixtures').text;
 
 describe('$(...)', function() {
@@ -65,7 +66,9 @@ describe('$(...)', function() {
       expect($('ul', fruits).children('.lulz')).to.have.length(0);
     });
 
-    it('should only match immediate children, not ancestors');
+    it('should only match immediate children, not ancestors', function() {
+      expect($(food).children('li')).to.have.length(0);
+    });
 
   });
 
@@ -100,6 +103,20 @@ describe('$(...)', function() {
       expect($('.banana', fruits).next()).to.have.length(0);
     });
 
+    it('() : should operate over all elements in the selection', function() {
+      expect($('.apple, .orange', food).next()).to.have.length(2);
+    });
+
+    describe('(selector) :', function() {
+      it('should reject elements that violate the filter', function() {
+        expect($('.apple', fruits).next('.non-existent')).to.have.length(0);
+      });
+
+      it('should accept elements that satisify the filter', function() {
+        expect($('.apple', fruits).next('.orange')).to.have.length(1);
+      });
+    });
+
   });
 
   describe('.nextAll', function() {
@@ -119,6 +136,96 @@ describe('$(...)', function() {
       expect($('.banana', fruits).nextAll()).to.have.length(0);
     });
 
+    it('() : should operate over all elements in the selection', function() {
+      expect($('.apple, .carrot', food).nextAll()).to.have.length(3);
+    });
+
+    it('() : should not contain duplicate elements', function() {
+      var elems = $('.apple, .orange', food);
+      expect(elems.nextAll()).to.have.length(2);
+    });
+
+    describe('(selector) :', function() {
+      it('should filter according to the provided selector', function() {
+        expect($('.apple', fruits).nextAll('.pear')).to.have.length(1);
+      });
+
+      it('should not consider siblings\' contents when filtering', function() {
+        expect($('#fruits', food).nextAll('li')).to.have.length(0);
+      });
+    });
+
+  });
+
+  describe('.nextUntil', function() {
+
+    it('() : should return all following siblings if no selector specified', function() {
+      var elems = $('.apple', food).nextUntil();
+      expect(elems).to.have.length(2);
+      expect(elems[0].attribs['class']).to.equal('orange');
+      expect(elems[1].attribs['class']).to.equal('pear');
+    });
+
+    it('() : should filter out non-element nodes', function() {
+      var elems = $('<div><div></div><!-- comment -->text<div></div></div>');
+      var div = elems.children().eq(0);
+      expect(div.nextUntil()).to.have.length(1);
+    });
+
+    it('() : should operate over all elements in the selection', function() {
+      var elems = $('.apple, .carrot', food);
+      expect(elems.nextUntil()).to.have.length(3);
+    });
+
+    it('() : should not contain duplicate elements', function() {
+      var elems = $('.apple, .orange', food);
+      expect(elems.nextUntil()).to.have.length(2);
+    });
+
+    it('(selector) : should return all following siblings until selector', function() {
+      var elems = $('.apple', food).nextUntil('.pear');
+      expect(elems).to.have.length(1);
+      expect(elems[0].attribs['class']).to.equal('orange');
+    });
+
+    it('(selector not sibling) : should return all following siblings', function() {
+      var elems = $('.apple', fruits).nextUntil('#vegetables');
+      expect(elems).to.have.length(2);
+    });
+
+    it('(selector, filterString) : should return all following siblings until selector, filtered by filter', function() {
+      var elems = $('.beer', drinks).nextUntil('.water', '.milk');
+      expect(elems).to.have.length(1);
+      expect(elems[0].attribs['class']).to.equal('milk');
+    });
+
+    it('(null, filterString) : should return all following siblings until selector, filtered by filter', function() {
+      var elems = $('<ul><li></li><li><p></p></li></ul>');
+      var empty = elems.find('li').eq(0).nextUntil(null, 'p');
+      expect(empty).to.have.length(0);
+    });
+
+    it('() : should return an empty object for last child', function() {
+      expect($('.pear', fruits).nextUntil()).to.have.length(0);
+    });
+
+    it('() : should return an empty object when called on an empty object', function() {
+      expect($('.banana', fruits).nextUntil()).to.have.length(0);
+    });
+
+    it('(node) : should return all following siblings until the node', function() {
+      var $fruits = $(fruits).children();
+      var elems = $fruits.eq(0).nextUntil($fruits[2]);
+      expect(elems).to.have.length(1);
+    });
+
+    it('(cheerio object) : should return all following siblings until any member of the cheerio object', function() {
+      var $drinks = $(drinks).children();
+      var $until = $([$drinks[4], $drinks[3]]);
+      var elems = $drinks.eq(0).nextUntil($until);
+      expect(elems).to.have.length(2);
+    });
+
   });
 
   describe('.prev', function() {
@@ -134,6 +241,20 @@ describe('$(...)', function() {
 
     it('(prev on empty object) : should return empty', function() {
       expect($('.banana', fruits).prev()).to.have.length(0);
+    });
+
+    it('() : should operate over all elements in the selection', function() {
+      expect($('.orange, .pear', food).prev()).to.have.length(2);
+    });
+
+    describe('(selector) :', function() {
+      it('should reject elements that violate the filter', function() {
+        expect($('.orange', fruits).prev('.non-existent')).to.have.length(0);
+      });
+
+      it('should accept elements that satisify the filter', function() {
+        expect($('.orange', fruits).prev('.apple')).to.have.length(1);
+      });
     });
 
   });
@@ -153,6 +274,99 @@ describe('$(...)', function() {
 
     it('(prevAll on empty object) : should return empty', function() {
       expect($('.banana', fruits).prevAll()).to.have.length(0);
+    });
+
+    it('() : should operate over all elements in the selection', function() {
+      expect($('.orange, .sweetcorn', food).prevAll()).to.have.length(2);
+    });
+
+    it('() : should not contain duplicate elements', function() {
+      var elems = $('.orange, .pear', food);
+      expect(elems.prevAll()).to.have.length(2);
+    });
+
+    describe('(selector) :', function() {
+      it('should filter returned elements', function() {
+        var elems = $('.pear', fruits).prevAll('.apple');
+        expect(elems).to.have.length(1);
+      });
+
+      it('should not consider siblings\'s descendents', function() {
+        var elems = $('#vegetables', food).prevAll('li');
+        expect(elems).to.have.length(0);
+      });
+    });
+
+  });
+
+  describe('.prevUntil', function() {
+
+    it('() : should return all preceding siblings if no selector specified', function() {
+      var elems = $('.pear', fruits).prevUntil();
+      expect(elems).to.have.length(2);
+      expect(elems[0].attribs['class']).to.equal('orange');
+      expect(elems[1].attribs['class']).to.equal('apple');
+    });
+
+    it('() : should filter out non-element nodes', function() {
+      var elems = $('<div class="1"><div class="2"></div><!-- comment -->text<div class="3"></div></div>');
+      var div = elems.children().last();
+      expect(div.prevUntil()).to.have.length(1);
+    });
+
+    it('() : should operate over all elements in the selection', function() {
+      var elems = $('.pear, .sweetcorn', food);
+      expect(elems.prevUntil()).to.have.length(3);
+    });
+
+    it('() : should not contain duplicate elements', function() {
+      var elems = $('.orange, .pear', food);
+      expect(elems.prevUntil()).to.have.length(2);
+    });
+
+    it('(selector) : should return all preceding siblings until selector', function() {
+      var elems = $('.pear', fruits).prevUntil('.apple');
+      expect(elems).to.have.length(1);
+      expect(elems[0].attribs['class']).to.equal('orange');
+    });
+
+    it('(selector not sibling) : should return all preceding siblings', function() {
+      var elems = $('.sweetcorn', food).prevUntil('#fruits');
+      expect(elems).to.have.length(1);
+      expect(elems[0].attribs['class']).to.equal('carrot');
+    });
+
+    it('(selector, filterString) : should return all preceding siblings until selector, filtered by filter', function() {
+      var elems = $('.cider', drinks).prevUntil('.juice', '.water');
+      expect(elems).to.have.length(1);
+      expect(elems[0].attribs['class']).to.equal('water');
+    });
+
+    it('(selector, filterString) : should return all preceding siblings until selector', function() {
+      var elems = $('<ul><li><p></p></li><li></li></ul>');
+      var empty = elems.find('li').eq(1).prevUntil(null, 'p');
+      expect(empty).to.have.length(0);
+    });
+
+    it('() : should return an empty object for first child', function() {
+      expect($('.apple', fruits).prevUntil()).to.have.length(0);
+    });
+
+    it('() : should return an empty object when called on an empty object', function() {
+      expect($('.banana', fruits).prevUntil()).to.have.length(0);
+    });
+
+    it('(node) : should return all previous siblings until the node', function() {
+      var $fruits = $(fruits).children();
+      var elems = $fruits.eq(2).prevUntil($fruits[0]);
+      expect(elems).to.have.length(1);
+    });
+
+    it('(cheerio object) : should return all previous siblings until any member of the cheerio object', function() {
+      var $drinks = $(drinks).children();
+      var $until = $([$drinks[0], $drinks[1]]);
+      var elems = $drinks.eq(4).prevUntil($until);
+      expect(elems).to.have.length(2);
     });
 
   });
@@ -176,6 +390,10 @@ describe('$(...)', function() {
       }).to.throwException(function(err) {
         expect(err).to.be.a(SyntaxError);
       });
+    });
+
+    it('(selector) : does not consider the contents of siblings when filtering (GH-374)', function() {
+      expect($('#fruits', food).siblings('li')).to.have.length(0);
     });
 
   });
@@ -314,7 +532,7 @@ describe('$(...)', function() {
       var thisVals = [];
 
       $fruits.map(function() {
-        args.push(arguments);
+        args.push(Array.prototype.slice.call(arguments));
         thisVals.push(this);
       });
 

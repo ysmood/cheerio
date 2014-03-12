@@ -279,8 +279,8 @@ $('.orange').closest('#fruits')
 // => [<ul id="fruits"> ... </ul>]
 ```
 
-#### .next()
-Gets the next sibling of the first selected element.
+#### .next([selector])
+Gets the next sibling of the first selected element, optionally filtered by a selector.
 
 ```js
 $('.apple').next().hasClass('orange')
@@ -295,8 +295,16 @@ $('.apple').nextAll()
 //=> [<li class="orange">Orange</li>, <li class="pear">Pear</li>]
 ```
 
-#### .prev()
-Gets the previous sibling of the first selected element.
+#### .nextUntil()
+Gets all the following siblings up to but not including the element matched by the selector.
+
+```js
+$('.apple').nextUntil('.pear')
+//=> [<li class="orange">Orange</li>]
+```
+
+#### .prev([selector])
+Gets the previous sibling of the first selected element optionally filtered by a selector.
 
 ```js
 $('.orange').prev().hasClass('apple')
@@ -309,6 +317,14 @@ Gets all the preceding siblings of the first selected element.
 ```js
 $('.pear').prevAll()
 //=> [<li class="orange">Orange</li>, <li class="apple">Apple</li>]
+```
+
+#### .prevUntil()
+Gets all the preceding siblings up to but not including the element matched by the selector.
+
+```js
+$('.pear').prevUntil('.apple')
+//=> [<li class="orange">Orange</li>]
 ```
 
 #### .slice( start, [end] )
@@ -702,7 +718,7 @@ __&#8226; @FB55 for node-htmlparser2 & CSSSelect:__
 Felix has a knack for writing speedy parsing engines. He completely re-wrote both @tautologistic's `node-htmlparser` and @harry's `node-soupselect` from the ground up, making both of them much faster and more flexible. Cheerio would not be possible without his foundational work
 
 __&#8226; @jQuery team for jQuery:__
-The core API is the best of it's class and despite dealing with all the browser inconsistencies the code base is extremely clean and easy to follow. Much of cheerio's implementation and documentation is from jQuery. Thanks guys.
+The core API is the best of its class and despite dealing with all the browser inconsistencies the code base is extremely clean and easy to follow. Much of cheerio's implementation and documentation is from jQuery. Thanks guys.
 
 __&#8226; @visionmedia:__
 The style, the structure, the open-source"-ness" of this library comes from studying TJ's style and using many of his libraries. This dude consistently pumps out high-quality libraries and has always been more than willing to help or answer questions. You rock TJ.
