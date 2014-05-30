@@ -1,4 +1,4 @@
-# cheerio [![Build Status](https://secure.travis-ci.org/MatthewMueller/cheerio.png?branch=master)](http://travis-ci.org/MatthewMueller/cheerio)
+# cheerio [![Build Status](https://secure.travis-ci.org/cheeriojs/cheerio.svg?branch=master)](http://travis-ci.org/cheeriojs/cheerio)
 
 Fast, flexible, and lean implementation of core jQuery designed specifically for the server.
 
@@ -26,8 +26,8 @@ Cheerio implements a subset of core jQuery. Cheerio removes all the DOM inconsis
 __&#991; Blazingly fast:__
 Cheerio works with a very simple, consistent DOM model. As a result parsing, manipulating, and rendering are incredibly efficient. Preliminary end-to-end benchmarks suggest that cheerio is about __8x__ faster than JSDOM.
 
-__&#10049; Insanely flexible:__
-Cheerio wraps around @FB55's forgiving htmlparser. Cheerio can parse nearly any HTML or XML document.
+__&#10049; Incredibly flexible:__
+Cheerio wraps around @FB55's forgiving [htmlparser2](https://github.com/fb55/htmlparser2/). Cheerio can parse nearly any HTML or XML document.
 
 ## What about JSDOM?
 I wrote cheerio because I found myself increasingly frustrated with JSDOM. For me, there were three main sticking points that I kept running into again and again:
@@ -93,19 +93,19 @@ $ = cheerio.load('<ul id="fruits">...</ul>', {
 });
 ```
 
-These parsing options are taken directly from htmlparser, therefore any options that can be used in htmlparser
-are valid in cheerio as well. The default options are:
+These parsing options are taken directly from [htmlparser2](https://github.com/fb55/htmlparser2/wiki/Parser-options), therefore any options that can be used in `htmlparser2` are valid in cheerio as well. The default options are:
 
 ```js
 {
     normalizeWhitespace: false,
     xmlMode: false,
-    lowerCaseTags: false
+    decodeEntities: true
 }
+
 ```
 
-For a list of options and their effects, see [this](https://github.com/fb55/DomHandler) and
-[this](https://github.com/fb55/htmlparser2/wiki/Parser-options).
+For a full list of options and their effects, see [this](https://github.com/fb55/DomHandler) and
+[htmlparser2's options](https://github.com/fb55/htmlparser2/wiki/Parser-options).
 
 ### Selectors
 
@@ -163,12 +163,13 @@ apple.data('kind')
 #### .val( [value] )
 Method for getting and setting the value of input, select, and textarea. Note: Support for `map`, and `function` has not been added yet.
 
-    $('input[type="text"]').val()
-    => input_text
+```js
+$('input[type="text"]').val()
+//=> input_text
 
-    $('input[type="text"]').val('test').html()
-    => <input type="text" value="test"/>
-
+$('input[type="text"]').val('test').html()
+//=> <input type="text" value="test"/>
+```
 
 #### .removeAttr( name )
 Method for removing attributes by `name`.
@@ -262,6 +263,13 @@ Get a set of parents filtered by `selector` of each element in the current set o
 $('.orange').parents().length
 // => 2
 $('.orange').parents('#fruits').length
+// => 1
+```
+
+#### .parentsUntil([selector][,filter])
+Get the ancestors of each element in the current set of matched elements, up to but not including the element matched by the selector, DOM node, or cheerio object.
+```js
+$('.orange').parentsUntil('#food').length
 // => 1
 ```
 
@@ -442,6 +450,22 @@ $('li').eq(-1).text()
 //=> Pear
 ```
 
+#### .get( [i] )
+
+Retrieve the DOM elements matched by the Cheerio object. If an index is specified, retrieve one of the elements matched by the Cheerio object:
+
+```js
+$('li').get(0).name
+//=> li
+```
+
+If no index is specified, retrieve all elements matched by the Cheerio object:
+
+```js
+$('li').get().length
+//=> 3
+```
+
 #### .end()
 End the most recent filtering operation in the current chain and return the set of matched elements to its previous state.
 
@@ -608,14 +632,6 @@ $.xml()
 ### Miscellaneous
 DOM element methods that don't fit anywhere else
 
-#### .toArray()
-Retrieve all the DOM elements contained in the jQuery set, as an array.
-
-```js
-$('li').toArray()
-//=> [ {...}, {...}, {...} ]
-```
-
 #### .clone() ####
 Clone the cheerio object.
 
@@ -667,47 +683,63 @@ These are some of the contributors that have made cheerio possible:
 
 ```
 project  : cheerio
-repo age : 2 years, 1 month
-active   : 196 days
-commits  : 591
-files    : 32
-authors  :
- 293  Matt Mueller            49.6%
- 102  Matthew Mueller         17.3%
-  52  Mike Pennisi            8.8%
-  47  David Chambers          8.0%
-  15  Siddharth Mahendraker   2.5%
-  11  Adam Bretz              1.9%
-   7  ironchefpython          1.2%
-   6  Jarno Leppänen         1.0%
-   5  Ben Sheldon             0.8%
-   5  Ryan Schmukler          0.8%
-   5  Jos Shepherd            0.8%
-   4  Maciej Adwent           0.7%
-   4  Amir Abu Shareb         0.7%
-   3  Felix Böhm             0.5%
-   3  jeremy.dentel@brandingbrand.com 0.5%
-   3  Andi Neck               0.5%
-   2  alexbardas              0.3%
-   2  Ali Farhadi             0.3%
-   2  Thomas Heymann          0.3%
-   2  Wayne Larsen            0.3%
-   2  Rob Ashton              0.3%
-   2  Chris Khoo              0.3%
-   1  xiaohwan                0.2%
-   1  Chris O'Hara            0.2%
-   1  Felix Böhm            0.2%
-   1  Jeremy Hubble           0.2%
-   1  Manuel Alabor           0.2%
-   1  Matt Liegey             0.2%
-   1  Ben Atkin               0.2%
-   1  Rich Trott              0.2%
-   1  Rob "Hurricane" Ashton  0.2%
-   1  Simon Boudrias          0.2%
-   1  Sindre Sorhus           0.2%
-   1  Timm Preetz             0.2%
-   1  mattym                  0.2%
-   1  nevermind               0.2%
+ repo age : 2 years, 6 months
+ active   : 285 days
+ commits  : 762
+ files    : 36
+ authors  :
+   293  Matt Mueller            38.5%
+   133  Matthew Mueller         17.5%
+    92  Mike Pennisi            12.1%
+    54  David Chambers          7.1%
+    30  kpdecker                3.9%
+    19  Felix Böhm             2.5%
+    17  fb55                    2.2%
+    15  Siddharth Mahendraker   2.0%
+    11  Adam Bretz              1.4%
+     8  Nazar Leush             1.0%
+     7  ironchefpython          0.9%
+     6  Jarno Leppänen         0.8%
+     5  Ben Sheldon             0.7%
+     5  Jos Shepherd            0.7%
+     5  Ryan Schmukler          0.7%
+     5  Steven Vachon           0.7%
+     4  Maciej Adwent           0.5%
+     4  Amir Abu Shareb         0.5%
+     3  jeremy.dentel@brandingbrand.com 0.4%
+     3  Andi Neck               0.4%
+     2  steve                   0.3%
+     2  alexbardas              0.3%
+     2  finspin                 0.3%
+     2  Ali Farhadi             0.3%
+     2  Chris Khoo              0.3%
+     2  Rob Ashton              0.3%
+     2  Thomas Heymann          0.3%
+     2  Jaro Spisak             0.3%
+     2  Dan Dascalescu          0.3%
+     2  Torstein Thune          0.3%
+     2  Wayne Larsen            0.3%
+     1  Timm Preetz             0.1%
+     1  Xavi                    0.1%
+     1  Alex Shaindlin          0.1%
+     1  mattym                  0.1%
+     1  Felix Böhm            0.1%
+     1  Farid Neshat            0.1%
+     1  Dmitry Mazuro           0.1%
+     1  Jeremy Hubble           0.1%
+     1  nevermind               0.1%
+     1  Manuel Alabor           0.1%
+     1  Matt Liegey             0.1%
+     1  Chris O'Hara            0.1%
+     1  Michael Holroyd         0.1%
+     1  Michiel De Mey          0.1%
+     1  Ben Atkin               0.1%
+     1  Rich Trott              0.1%
+     1  Rob "Hurricane" Ashton  0.1%
+     1  Robin Gloster           0.1%
+     1  Simon Boudrias          0.1%
+     1  Sindre Sorhus           0.1%
+     1  xiaohwan                0.1%
 ```
 
 ## Special Thanks

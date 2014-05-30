@@ -99,11 +99,32 @@ describe('$(...)', function() {
 
   describe('.data', function() {
 
-    it('() : should get all data attributes', function() {
+    it('() : should get all data attributes initially declared in the markup', function() {
       var data = $('.linth', chocolates).data();
       expect(data).to.eql({
         highlight: 'Lindor',
         origin: 'swiss'
+      });
+    });
+
+    it('() : should get all data set via `data`', function() {
+      var $el = $('<div>');
+      $el.data('a', 1);
+      $el.data('b', 2);
+
+      expect($el.data()).to.eql({
+        a: 1,
+        b: 2
+      });
+    });
+
+    it('() : should get all data attributes initially declared in the markup merged with all data additionally set via `data`', function() {
+      var $el = $('<div data-a="a">');
+      $el.data('b', 'b');
+
+      expect($el.data()).to.eql({
+        a: 'a',
+        b: 'b'
       });
     });
 
@@ -123,6 +144,46 @@ describe('$(...)', function() {
 
       expect(highlight).to.equal('Lindor');
       expect(origin).to.equal('swiss');
+    });
+
+    it('(key) : should translate camel-cased key values to hyphen-separated versions', function() {
+      var $el = $('<div data--three-word-attribute="a" data-foo-Bar_BAZ-="b">');
+
+      expect($el.data('ThreeWordAttribute')).to.be('a');
+      expect($el.data('fooBar_baz-')).to.be('b');
+    });
+
+    it('(key) : should retrieve object values', function() {
+      var data = {};
+      var $el = $('<div>');
+
+      $el.data('test', data);
+
+      expect($el.data('test')).to.be(data);
+    });
+
+    it('(key) : should parse JSON data derived from the markup', function() {
+      var $el = $('<div data-json="[1, 2, 3]">');
+
+      expect($el.data('json')).to.eql([1,2,3]);
+    });
+
+    it('(key) : should not parse JSON data set via the `data` API', function() {
+      var $el = $('<div>');
+      $el.data('json', '[1, 2, 3]');
+
+      expect($el.data('json')).to.be('[1, 2, 3]');
+    });
+
+    // See http://api.jquery.com/data/ and http://bugs.jquery.com/ticket/14523
+    it('(key) : should ignore the markup value after the first access', function() {
+      var $el = $('<div data-test="a">');
+
+      expect($el.data('test')).to.be('a');
+
+      $el.attr('data-test', 'b');
+
+      expect($el.data('test')).to.be('a');
     });
 
     it('(hyphen key) : data addribute with hyphen should be camelized ;-)', function() {
@@ -263,16 +324,27 @@ describe('$(...)', function() {
   });
 
   describe('.hasClass', function() {
+    function test(attr) {
+      return $('<div class="' + attr + '"></div>');
+    }
 
     it('(valid class) : should return true', function() {
       var $fruits = $(fruits);
       var cls = $('.apple', $fruits).hasClass('apple');
       expect(cls).to.be.ok();
+
+      expect(test('foo').hasClass('foo')).to.be.ok();
+      expect(test('foo bar').hasClass('foo')).to.be.ok();
+      expect(test('bar foo').hasClass('foo')).to.be.ok();
+      expect(test('bar foo bar').hasClass('foo')).to.be.ok();
     });
 
     it('(invalid class) : should return false', function() {
       var cls = $('#fruits', fruits).hasClass('fruits');
       expect(cls).to.not.be.ok();
+      expect(test('foo-bar').hasClass('foo')).to.not.be.ok();
+      expect(test('foo-bar').hasClass('foo')).to.not.be.ok();
+      expect(test('foo-bar').hasClass('foo-ba')).to.not.be.ok();
     });
 
     it('should check multiple classes', function() {
@@ -566,7 +638,7 @@ describe('$(...)', function() {
 
     it('(true predicate) : should return true', function() {
       var result = $('li', fruits).is(function() {
-        return this.hasClass('pear');
+        return this.name === 'li' && $(this).hasClass('pear');
       });
       expect(result).to.be(true);
     });

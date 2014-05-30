@@ -37,6 +37,18 @@ describe('$(...)', function() {
       expect($('#fruits').find('li')).to.have.length(0);
     });
 
+    it('should lowercase selectors', function() {
+      expect($('#fruits', fruits).find('LI')).to.have.length(3);
+    });
+
+    it('should query case-sensitively when in xmlMode', function() {
+      var q = $.load('<caseSenSitive allTheWay>', {xmlMode: true});
+      expect(q('caseSenSitive')).to.have.length(1);
+      expect(q('[allTheWay]')).to.have.length(1);
+      expect(q('casesensitive')).to.have.length(0);
+      expect(q('[alltheway]')).to.have.length(0);
+    });
+
     it('should throw a SyntaxError if given an invalid selector', function() {
       expect(function() {
         $('#fruits').find(':bah');
@@ -399,6 +411,7 @@ describe('$(...)', function() {
   });
 
   describe('.parents', function() {
+
     it('() : should get all of the parents in logical order', function(){
       var result = $('.orange', food).parents();
       expect(result).to.have.length(2);
@@ -408,6 +421,7 @@ describe('$(...)', function() {
       expect(result).to.have.length(1);
       expect(result[0].attribs.id).to.be('food');
     });
+
     it('(selector) : should get all of the parents that match the selector in logical order', function() {
       var result = $('.orange', food).parents('#fruits');
       expect(result).to.have.length(1);
@@ -417,14 +431,17 @@ describe('$(...)', function() {
       expect(result[0].attribs.id).to.be('fruits');
       expect(result[1].attribs.id).to.be('food');
     });
+
     it('() : should not break if the selector does not have any results', function() {
       var result = $('.saladbar', food).parents();
       expect(result).to.have.length(0);
     });
+
     it('() : should return an empty set for top-level elements', function() {
       var result = $('#food', food).parents();
       expect(result).to.have.length(0);
     });
+
     it('() : should return the parents of every element in the *reveresed* collection, omitting duplicates', function() {
       var $food = $(food);
       var $parents = $food.find('li').parents();
@@ -434,6 +451,66 @@ describe('$(...)', function() {
       expect($parents[1]).to.be($food[0]);
       expect($parents[2]).to.be($food.find('#fruits')[0]);
     });
+
+  });
+
+  describe('.parentsUntil', function() {
+
+    it('() : should get all of the parents in logical order', function() {
+      var result = $('.orange', food).parentsUntil();
+      expect(result).to.have.length(2);
+      expect(result[0].attribs.id).to.be('fruits');
+      expect(result[1].attribs.id).to.be('food');
+    });
+
+    it('() : should get all of the parents in reversed order, omitting duplicates', function() {
+      var result = $('.apple, .sweetcorn', food).parentsUntil();
+      expect(result).to.have.length(3);
+      expect(result[0].attribs.id).to.be('vegetables');
+      expect(result[1].attribs.id).to.be('food');
+      expect(result[2].attribs.id).to.be('fruits');
+    });
+
+    it('(selector) : should get all of the parents until selector', function() {
+      var result = $('.orange', food).parentsUntil('#food');
+      expect(result).to.have.length(1);
+      expect(result[0].attribs.id).to.be('fruits');
+      result = $('.orange', food).parentsUntil('#fruits');
+      expect(result).to.have.length(0);
+    });
+
+    it('(selector not parent) : should return all parents', function() {
+      var result = $('.orange', food).parentsUntil('.apple');
+      expect(result).to.have.length(2);
+      expect(result[0].attribs.id).to.be('fruits');
+      expect(result[1].attribs.id).to.be('food');
+    });
+
+    it('(selector, filter) : should get all of the parents that match the filter', function() {
+      var result = $('.apple, .sweetcorn', food).parentsUntil('.saladbar', '#vegetables');
+      expect(result).to.have.length(1);
+      expect(result[0].attribs.id).to.be('vegetables');
+    });
+
+    it('() : should return empty object when called on an empty object', function() {
+      var result = $('.saladbar', food).parentsUntil();
+      expect(result).to.have.length(0);
+    });
+
+    it('() : should return an empty set for top-level elements', function() {
+      var result = $('#food', food).parentsUntil();
+      expect(result).to.have.length(0);
+    });
+
+    it('(cheerio object) : should return all parents until any member of the cheerio object', function() {
+      var $food = $(food);
+      var $fruits = $(fruits);
+      var $until = $($food[0]);
+      var result = $fruits.children().eq(1).parentsUntil($until);
+      expect(result).to.have.length(1);
+      expect(result[0].attribs.id).to.be('fruits');
+    });
+
   });
 
   describe('.parent', function() {
@@ -506,7 +583,7 @@ describe('$(...)', function() {
           classes = ['apple', 'orange', 'pear'];
       $('li', fruits).each(function(idx, elem) {
         items[idx] = elem;
-        expect(this[0].attribs['class']).to.equal(classes[idx]);
+        expect(this.attribs['class']).to.equal(classes[idx]);
       });
       expect(items[0].attribs['class']).to.equal('apple');
       expect(items[1].attribs['class']).to.equal('orange');
@@ -579,7 +656,7 @@ describe('$(...)', function() {
         return [1, [3, 4]];
       });
 
-      expect($mapped.toArray()).to.eql([
+      expect($mapped.get()).to.eql([
         1, [3, 4],
         1, [3, 4],
         1, [3, 4]
@@ -593,7 +670,7 @@ describe('$(...)', function() {
         return [null, undefined];
       });
 
-      expect($mapped.toArray()).to.eql([
+      expect($mapped.get()).to.eql([
         null, undefined,
         null, undefined,
         null, undefined,
@@ -626,10 +703,10 @@ describe('$(...)', function() {
 
     it('(fn) : should reduce the set of matched elements to those that pass the function\'s test', function() {
       var orange = $('li', fruits).filter(function(i, el) {
-        expect(this[0]).to.be(el);
+        expect(this).to.be(el);
         expect(el.name).to.be('li');
         expect(i).to.be.a('number');
-        return this.attr('class') === 'orange';
+        return $(this).attr('class') === 'orange';
       }).text();
 
       expect(orange).to.be('Orange');
@@ -700,6 +777,35 @@ describe('$(...)', function() {
       expect(getText($('li', fruits).eq(2))).to.equal('Pear');
       expect(getText($('li', fruits).eq(3))).to.equal('');
       expect(getText($('li', fruits).eq(-1))).to.equal('Pear');
+    });
+
+  });
+
+  describe('.get', function() {
+
+    it('(i) : should return the element at the specified index', function() {
+      var children = $(fruits).children();
+      expect(children.get(0)).to.be(children[0]);
+      expect(children.get(1)).to.be(children[1]);
+      expect(children.get(2)).to.be(children[2]);
+    });
+
+    it('(-1) : should return the element indexed from the end of the collection', function() {
+      var children = $(fruits).children();
+      expect(children.get(-1)).to.be(children[2]);
+      expect(children.get(-2)).to.be(children[1]);
+      expect(children.get(-3)).to.be(children[0]);
+    });
+
+    it('() : should return an array containing all of the collection', function() {
+      var children = $(fruits).children();
+      var all = children.get();
+      expect(Array.isArray(all)).to.be.ok();
+      expect(all).to.eql([
+        children[0],
+        children[1],
+        children[2]
+      ]);
     });
 
   });
